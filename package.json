@@ -1,0 +1,26 @@
+{
+  "name": "ssa-ir",
+  "version": "0.0.0",
+  "description": "SSA IR",
+  "main": "index.js",
+  "scripts": {
+    "test": "mocha --reporter spec test/*-test.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:indutny/ssa-ir"
+  },
+  "keywords": [
+    "SSA",
+    "IR"
+  ],
+  "author": "Fedor Indutny <fedor@indutny.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/indutny/ssa-ir/issues"
+  },
+  "homepage": "https://github.com/indutny/ssa-ir",
+  "devDependencies": {
+    "mocha": "~1.17.0"
+  }
+}
