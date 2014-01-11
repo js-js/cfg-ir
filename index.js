@@ -69,6 +69,9 @@ exports.stringify = function stringify(blocks) {
       res += '  ';
       if (instr.output)
         res += valueToStr(instr.output) + ' = ';
+      else if (instr.id)
+        res += instr.id + ' = ';
+
       res += instr.type;
       if (instr.inputs && instr.inputs.length > 0)
         res += ' ' + instr.inputs.map(valueToStr).join(', ');
