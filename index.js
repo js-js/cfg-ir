@@ -75,7 +75,7 @@ exports.stringify = function stringify(blocks) {
       if (instr.output)
         res += valueToStr(instr.output) + ' = ';
       else if (instr.id)
-        res += instr.id + ' = ';
+        res += (instr.assign ? '@' : '') + instr.id + ' = ';
 
       res += instr.type;
       if (instr.inputs && instr.inputs.length > 0)
