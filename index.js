@@ -52,6 +52,8 @@ exports.stringify = function stringify(blocks) {
       return '%' + JSON.stringify(value.value);
     else if (value.type === 'register')
       return '$' + value.id;
+    else if (value.type === 'stack')
+      return '[' + value.id + ']';
     else
       return value.id;
   }
