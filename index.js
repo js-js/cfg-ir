@@ -23,16 +23,19 @@ exports.parse = function parse(source) {
     }
 
     // Instruction
-    match = line.match(/^\s*(?:([\w\d]+)\s*=\s*)?([\w\d]+)(?:\s+(.+))?\s*$/);
+    match = line.match(/^\s*(?:(@)?([\w\d]+)\s*=\s*)?([\w\d]+)(?:\s+(.+))?\s*$/);
     if (match === null)
       return;
 
     var instr = {
-      id: match[1] || null,
-      type: match[2],
-      inputs: match[3] && match[3].split(/\s*,\s*/g).map(function(input) {
+      assign: !!match[1],
+      id: match[2] || null,
+      type: match[3],
+      inputs: match[4] && match[4].split(/\s*,\s*/g).map(function(input) {
         if (/^%/.test(input))
           return { type: 'js', value: JSON.parse(input.slice(1)) };
+        else if (/^@/.test(input))
+          return { type: 'variable', id: input.slice(1) };
         else
           return { type: 'instruction', id: input };
       }) || null
@@ -50,6 +53,8 @@ exports.stringify = function stringify(blocks) {
   function valueToStr(value) {
     if (value.type === 'js')
       return '%' + JSON.stringify(value.value);
+    else if (value.type === 'variable')
+      return '@' + value.id;
     else if (value.type === 'register')
       return '$' + value.id;
     else if (value.type === 'stack')
