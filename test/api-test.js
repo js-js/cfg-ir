@@ -24,4 +24,19 @@ describe('SSA IR', function() {
     var str = ssa.stringify(cfg);
     assert.ok(/block B1 -> B2, B3/.test(str));
   });
+
+  it('should support %undefined', function() {
+    var cfg = ssa.parse(function() {/*
+      block B1
+        literal %undefined
+    */});
+
+    assert.equal(cfg.length, 1);
+    assert.equal(cfg[0].id, 'B1');
+    assert.equal(cfg[0].instructions[0].inputs[0].type, 'js');
+    assert.equal(cfg[0].instructions[0].inputs[0].value, undefined);
+
+    var str = ssa.stringify(cfg);
+    assert.ok(/%undefined/.test(str));
+  });
 });

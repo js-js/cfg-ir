@@ -32,7 +32,9 @@ exports.parse = function parse(source) {
       id: match[2] || null,
       type: match[3],
       inputs: match[4] && match[4].split(/\s*,\s*/g).map(function(input) {
-        if (/^%/.test(input))
+        if (/^%undefined/.test(input))
+          return { type: 'js', value: undefined };
+        else if (/^%/.test(input))
           return { type: 'js', value: JSON.parse(input.slice(1)) };
         else if (/^@/.test(input))
           return { type: 'variable', id: input.slice(1) };
