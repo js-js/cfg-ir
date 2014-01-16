@@ -39,4 +39,18 @@ describe('SSA IR', function() {
     var str = ssa.stringify(cfg);
     assert.ok(/%undefined/.test(str));
   });
+
+  it('should support \/ - and . in id', function() {
+    var cfg = ssa.parse(function() {/*
+      block B1
+        a/.-b = literal %undefined
+    */});
+
+    assert.equal(cfg.length, 1);
+    assert.equal(cfg[0].id, 'B1');
+    assert.equal(cfg[0].instructions[0].id, 'a/.-b');
+
+    var str = ssa.stringify(cfg);
+    assert.ok(/a\/.-b/.test(str));
+  });
 });
