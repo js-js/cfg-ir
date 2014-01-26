@@ -100,7 +100,7 @@ exports.stringify = function stringify(blocks) {
         res += '}';
       }
 
-      if (instr.astId !== undefined)
+      if (instr.astId !== undefined && instr.astId !== null)
         res += ' # ' + instr.astId;
 
       res += '\n';
