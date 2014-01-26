@@ -24,7 +24,7 @@ exports.parse = function parse(source) {
 
     // Instruction
     match = line.match(
-      /^\s*(?:(@)?([\w\d\/\-\.]+)\s*=\s*)?([\w\d\/\-\.]+)(?:\s+(.+))?\s*$/
+      /^\s*(?:(@)?([\w\d\/\-\.]+)\s*=\s*)?([\w\d\/\-\.]+)(?:\s+(.+?))(?:#\s*([\w\d\/\-\.]+))?\s*$/
     );
     if (match === null)
       return;
@@ -33,6 +33,7 @@ exports.parse = function parse(source) {
       assign: !!match[1],
       id: match[2] || null,
       type: match[3],
+      astId: match[5] || null,
       inputs: match[4] && match[4].split(/\s*,\s*/g).map(function(input) {
         if (/^%undefined/.test(input))
           return { type: 'js', value: undefined };
@@ -98,6 +99,10 @@ exports.stringify = function stringify(blocks) {
         }).join(', ');
         res += '}';
       }
+
+      if (instr.astId !== undefined)
+        res += ' # ' + instr.astId;
+
       res += '\n';
     });
   });

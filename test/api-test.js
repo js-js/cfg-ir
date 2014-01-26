@@ -53,4 +53,18 @@ describe('SSA IR', function() {
     var str = ssa.stringify(cfg);
     assert.ok(/a\/.-b/.test(str));
   });
+
+  it('should support astId', function() {
+    var cfg = ssa.parse(function() {/*
+      block B1
+        a/.-b = literal %undefined # abc
+    */});
+
+    assert.equal(cfg.length, 1);
+    assert.equal(cfg[0].id, 'B1');
+    assert.equal(cfg[0].instructions[0].astId, 'abc');
+
+    var str = ssa.stringify(cfg);
+    assert.ok(/# abc/.test(str));
+  });
 });
