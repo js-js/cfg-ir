@@ -24,7 +24,7 @@ exports.parse = function parse(source) {
 
     // Instruction
     match = line.match(
-      /^\s*(?:(@)?([\w\d\/\-\.]+)\s*=\s*)?([\w\d\/\-\.]+)(?:\s+(.+?))(?:#\s*([\w\d\/\-\.]+))?\s*$/
+      /^\s*(?:(@)?([\w\d\/\-\.]+)\s*=\s*)?([\w\d\/\-\.]+)(?:\s+(.+?))?(?:#\s*([\w\d\/\-\.]+))?\s*$/
     );
     if (match === null)
       return;
@@ -43,7 +43,7 @@ exports.parse = function parse(source) {
           return { type: 'variable', id: input.slice(1) };
         else
           return { type: 'instruction', id: input };
-      }) || null
+      }) || []
     };
     block.instructions.push(instr);
   });

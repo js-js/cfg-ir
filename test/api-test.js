@@ -25,6 +25,21 @@ describe('SSA IR', function() {
     assert.ok(/block B1 -> B2, B3/.test(str));
   });
 
+  it('should support instruction without args', function() {
+    var cfg = ssa.parse(function() {/*
+      block B1
+        branch
+    */});
+
+    assert.equal(cfg.length, 1);
+    assert.equal(cfg[0].id, 'B1');
+    assert.equal(cfg[0].instructions[0].type, 'branch');
+    assert.equal(cfg[0].instructions[0].inputs.length, 0);
+
+    var str = ssa.stringify(cfg);
+    assert.ok(/branch/.test(str));
+  });
+
   it('should support %undefined', function() {
     var cfg = ssa.parse(function() {/*
       block B1
