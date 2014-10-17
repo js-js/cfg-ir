@@ -24,7 +24,7 @@ exports.parse = function parse(source) {
 
     // Instruction
     match = line.match(
-      /^\s*(?:(@)?([\w\d\/\-\.]+)\s*=\s*)?([\w\d\/\-\.]+)(?:\s+([^#]+))?(?:\s*#\s*([\w\d\/\-\.]+))?\s*$/
+      /^\s*(?:(@)?([\w\d\/\-\.]+)\s*=\s*)?([\w\d\/\-\.]+)(?:\s+([^#]+?))?(?:\s*#\s*([\w\d\/\-\.]+))?\s*$/
     );
     if (match === null)
       return;
