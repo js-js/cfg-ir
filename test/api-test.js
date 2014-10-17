@@ -82,4 +82,18 @@ describe('SSA IR', function() {
     var str = ssa.stringify(cfg);
     assert.ok(/# abc/.test(str));
   });
+
+  it('should support astId', function() {
+    var cfg = ssa.parse(function() {/*
+      block B0
+        i51 = global # 30
+    */});
+
+    assert.equal(cfg.length, 1);
+    assert.equal(cfg[0].id, 'B0');
+    assert.equal(cfg[0].instructions[0].astId, '30');
+
+    var str = ssa.stringify(cfg);
+    assert.ok(/# 30/.test(str));
+  });
 });
