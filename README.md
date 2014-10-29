@@ -1,11 +1,11 @@
-# SSA IR
+# CFG IR
 
 ## Usage
 
 ```javascript
-var ssa = require('ssa-ir');
+var ir = require('cfg-ir');
 
-var cfg = ssa.parse(function() {/*
+var cfg = ir.parse(function() {/*
   block B1 -> B2, B3
     arg1 = instr1 %literal1, %literal2
     id2 = instr2 arg1
@@ -40,7 +40,7 @@ console.log(cfg);
     successors: [] } ]
 */
 
-console.log(ssa.stringify(cfg));
+console.log(ir.stringify(cfg));
 /*
 block B1 -> B2, B3
   instr1 %"literal1", %42
