@@ -135,19 +135,6 @@ Parser.prototype.parseInstruction = function parseInstruction(line) {
 };
 
 exports.stringify = function stringify(blocks) {
-  function valueToStr(value) {
-    if (value.type === 'js')
-      return '%' + JSON.stringify(value.value);
-    else if (value.type === 'variable')
-      return '@' + value.id;
-    else if (value.type === 'register')
-      return '$' + value.id;
-    else if (value.type === 'stack')
-      return '[' + value.id + ']';
-    else
-      return value.id;
-  }
-
   var res = '';
   blocks.forEach(function(block) {
     res += 'block ' + block.id;
@@ -157,34 +144,82 @@ exports.stringify = function stringify(blocks) {
 
     block.instructions.forEach(function(instr) {
       res += '  ';
-      if (instr.output)
-        res += valueToStr(instr.output) + ' = ';
-      else if (instr.id)
-        res += (instr.assign ? '@' : '') + instr.id + ' = ';
 
-      res += instr.type;
-      if (instr.inputs && instr.inputs.length > 0)
-        res += ' ' + instr.inputs.map(valueToStr).join(', ');
-      if (instr.scratch && instr.scratch.length > 0)
-        res += ' |' + instr.scratch.map(valueToStr).join(', ') + '|';
-      if (instr.moves && instr.moves.length) {
-        res += ' {';
-        res += instr.moves.map(function(move) {
-          var from = valueToStr(move.from);
-          var to = valueToStr(move.to);
-          if (move.type === 'move')
-            return from + ' => ' + to;
-          else
-            return from + ' <=> ' + to;
-        }).join(', ');
-        res += '}';
-      }
-
-      if (instr.astId !== undefined && instr.astId !== null)
-        res += ' # ' + instr.astId;
+      res += exports.stringifyInstr(instr);
 
       res += '\n';
     });
   });
+  return res;
+};
+
+function valueToStr(value) {
+  if (value.type === 'js')
+    return '%' + JSON.stringify(value.value);
+  else if (value.type === 'variable')
+    return '@' + value.id;
+  else if (value.type === 'register')
+    return '$' + value.id;
+  else if (value.type === 'stack')
+    return '[' + value.id + ']';
+  else
+    return value.id;
+}
+
+exports.stringifyInstr = function stringifyInstr(instr) {
+  var res = '';
+
+  if (instr.output)
+    res += valueToStr(instr.output) + ' = ';
+  else if (instr.id)
+    res += (instr.assign ? '@' : '') + instr.id + ' = ';
+
+  res += instr.type;
+  if (instr.inputs && instr.inputs.length > 0)
+    res += ' ' + instr.inputs.map(valueToStr).join(', ');
+  if (instr.scratch && instr.scratch.length > 0)
+    res += ' |' + instr.scratch.map(valueToStr).join(', ') + '|';
+  if (instr.moves && instr.moves.length) {
+    res += ' {';
+    res += instr.moves.map(function(move) {
+      var from = valueToStr(move.from);
+      var to = valueToStr(move.to);
+      if (move.type === 'move')
+        return from + ' => ' + to;
+      else
+        return from + ' <=> ' + to;
+    }).join(', ');
+    res += '}';
+  }
+
+  if (instr.astId !== undefined && instr.astId !== null)
+    res += ' # ' + instr.astId;
+
+  return res;
+};
+
+exports.dotify = function dotify(cfg) {
+  var res = 'digraph {\n' +
+            '  node[shape=record];\n';
+
+  for (var i = 0; i < cfg.length; i++) {
+    var block = cfg[i];
+
+    for (var j = 0; j < block.successors.length; j++) {
+      var succ = block.successors[j];
+      res += '  ' + block.id + ' -> '  + succ + ';\n';
+    }
+
+    res += '  ' + block.id + '[label="{';
+    for (var j = 0; j < block.instructions.length; j++) {
+      var instr = exports.stringifyInstr(block.instructions[j]);
+
+      res += (j !== 0 ? '|' : '');
+      res += instr.replace(/(["\|<>\\{}])/g, '\\$1');
+    }
+    res += '}"];\n';
+  }
+
+  res += '}\n';
   return res;
 };
