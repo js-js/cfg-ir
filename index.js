@@ -1,57 +1,137 @@
-exports.parse = function parse(source) {
-  var lines = source.toString().replace(/^function.*{(\/\*)?|(\*\/)}$/g, '')
-                               .split(/\r\n|\r|\n/g);
-  var result = [];
-  var block = null;
+function Parser(source, locals) {
+  this.source = source;
+  this.locals = locals || {};
+  this.result = [];
+  this.block = null;
+  this.conds = [];
+  this.condStack = [];
+}
 
-  lines.forEach(function(line) {
-    var match;
+exports.parse = function parse(source, locals) {
+  return new Parser(source, locals).run();
+};
 
-    // Block
-    var re = /^\s*block\s+([\w\d]+)(?:\s+->\s+([\w\d]+)(?:\s*,\s*([\w\d]+))?)?/;
-    match = line.match(re);
-    if (match !== null) {
-      if (block !== null)
-        result.push(block);
+Parser.prototype.run = function run() {
+  var lines = this.source.toString()
+                         .replace(/^function.*{(\/\*)?|(\*\/)}$/g, '')
+                         .split(/\r\n|\r|\n/g);
+  for (var i = 0; i < lines.length; i++)
+    this.parseLine(lines[i].trim());
 
-      block = { id: match[1], instructions: [], successors: [] };
-      if (match[2])
-        block.successors.push(match[2]);
-      if (match[3])
-        block.successors.push(match[3]);
-      return;
-    }
+  if (this.block !== null)
+    this.result.push(this.block);
 
-    // Instruction
-    match = line.match(
-      /^\s*(?:(@)?([\w\d\/\-\.]+)\s*=\s*)?([\w\d\/\-\.]+)(?:\s+([^#]+?))?(?:\s*#\s*([\w\d\/\-\.]+))?\s*$/
-    );
-    if (match === null)
-      return;
+  return this.result;
+};
 
-    var instr = {
-      assign: !!match[1],
-      id: match[2] || null,
-      type: match[3],
-      astId: match[5] || null,
-      inputs: match[4] && match[4].split(/\s*,\s*/g).map(function(input) {
-        if (/^%undefined/.test(input))
-          return { type: 'js', value: undefined };
-        else if (/^%/.test(input))
-          return { type: 'js', value: JSON.parse(input.slice(1)) };
-        else if (/^@/.test(input))
-          return { type: 'variable', id: input.slice(1) };
-        else
-          return { type: 'instruction', id: input };
-      }) || []
-    };
-    block.instructions.push(instr);
-  });
+Parser.prototype.parseLine = function parseLine(line) {
+  var match;
 
-  if (block !== null)
-    result.push(block);
+  // Comments
+  if (/^\/\//.test(line))
+    return;
 
-  return result;
+  if (this.parseConditional(line))
+    return;
+
+  // If we are inside falsey conditional, skip parsing the lines
+  if (this.conds.length && !this.conds[this.conds.length - 1])
+    return;
+
+  if (this.parseBlock(line))
+    return;
+
+  this.parseInstruction(line);
+};
+
+Parser.prototype.eval = function _eval(expr) {
+  var res;
+  with (this.locals) {
+    res = eval(expr);
+  }
+  return res;
+};
+
+Parser.prototype.parseConditional = function parseConditional(line) {
+  // Conditionals
+  var re = /^#(if|elif|else|endif)(\s+(.*))?$/;
+  match = line.match(re);
+  if (match === null)
+    return false;
+
+  var cond = this.conds[this.conds.length - 1];
+  if (match[1] === 'else') {
+    this.conds[this.conds.length - 1] = !cond;
+    return true;
+  }
+
+  if (match[1] === 'endif') {
+    this.conds.pop();
+    this.condStack.pop();
+    return true;
+  }
+
+  if (match[1] === 'elif' && this.condStack[this.condStack.length - 1]) {
+    this.conds[this.conds.length - 1] = false;
+    return true;
+  }
+
+  var expr = this.eval(match[2] || '');
+  if (match[1] === 'if') {
+    this.conds.push(expr);
+    this.condStack.push(expr);
+  } else {
+    // elif
+    this.conds[this.conds.length - 1] = expr;
+    this.condStack[this.condStack.length - 1] = expr;
+  }
+
+  return true;
+};
+
+Parser.prototype.parseBlock = function parseBlock(line) {
+  var re = /^block\s+([\w\d]+)(?:\s+->\s+([\w\d]+)(?:\s*,\s*([\w\d]+))?)?(\s*\/\/.*$)?/;
+  var match = line.match(re);
+  if (match === null)
+    return false;
+
+  if (this.block !== null)
+    this.result.push(this.block);
+
+  this.block = { id: match[1], instructions: [], successors: [] };
+  if (match[2])
+    this.block.successors.push(match[2]);
+  if (match[3])
+    this.block.successors.push(match[3]);
+
+  return true;
+};
+
+Parser.prototype.parseInstruction = function parseInstruction(line) {
+  // Instruction
+  var match = line.match(
+    /^(?:(@)?([\w\d\/\-\.]+)\s*=\s*)?([\w\d\/\-\.]+)(?:\s+([^#]+?))?(?:\s*#\s*([\w\d\/\-\.]+))?\s*$/
+  );
+  if (match === null)
+    return;
+
+  var instr = {
+    assign: !!match[1],
+    id: match[2] || null,
+    type: match[3],
+    astId: match[5] || null,
+    inputs: match[4] && match[4].split(/\s*,\s*/g).map(function(input) {
+      if (/^%undefined/.test(input))
+        return { type: 'js', value: undefined };
+      else if (/^%/.test(input))
+        return { type: 'js', value: JSON.parse(input.slice(1)) };
+      else if (/^@/.test(input))
+        return { type: 'variable', id: input.slice(1) };
+      else
+        return { type: 'instruction', id: input };
+    }) || []
+  };
+  this.block.instructions.push(instr);
 };
 
 exports.stringify = function stringify(blocks) {

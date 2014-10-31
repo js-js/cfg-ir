@@ -96,4 +96,32 @@ describe('CFG IR', function() {
     var str = ir.stringify(cfg);
     assert.ok(/# 30/.test(str));
   });
+
+  it('should support conditionals', function() {
+    var cfg = ir.parse(function() {/*
+      block B1
+        #if a
+          doA
+        #elif b
+          #if a
+            doBA
+          #elif c
+            doBC
+          #endif
+          doAfterB
+        #elif c
+          doC
+        #end
+    */}, {
+      a: false,
+      b: true,
+      c: true
+    });
+
+    assert.equal(cfg.length, 1);
+    var block = cfg[0];
+    assert.equal(block.instructions.length, 2);
+    assert.equal(block.instructions[0].type, 'doBC');
+    assert.equal(block.instructions[1].type, 'doAfterB');
+  });
 });
