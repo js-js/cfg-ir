@@ -210,7 +210,7 @@ exports.dotify = function dotify(cfg) {
       res += '  ' + block.id + ' -> '  + succ + ';\n';
     }
 
-    res += '  ' + block.id + '[label="{';
+    res += '  ' + block.id + '[label="{' + block.id + '|';
     for (var j = 0; j < block.instructions.length; j++) {
       var instr = exports.stringifyInstr(block.instructions[j]);
 
