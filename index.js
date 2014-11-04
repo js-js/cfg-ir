@@ -34,6 +34,8 @@ Parser.prototype.parseLine = function parseLine(line) {
   if (this.parseConditional(line))
     return;
 
+  line = this.replaceLocal(line);
+
   // If we are inside falsey conditional, skip parsing the lines
   if (this.conds.length && !this.conds[this.conds.length - 1])
     return;
@@ -47,7 +49,7 @@ Parser.prototype.parseLine = function parseLine(line) {
 Parser.prototype.eval = function _eval(expr) {
   var res;
   with (this.locals) {
-    res = eval(expr);
+    res = eval('(' + expr + ')');
   }
   return res;
 };
@@ -87,6 +89,13 @@ Parser.prototype.parseConditional = function parseConditional(line) {
   }
 
   return true;
+};
+
+Parser.prototype.replaceLocal = function replaceLocal(line) {
+  var self = this;
+  return line.replace(/\{([^}]*)\}/, function(all, local) {
+    return JSON.stringify(self.eval(local));
+  });
 };
 
 Parser.prototype.parseBlock = function parseBlock(line) {
