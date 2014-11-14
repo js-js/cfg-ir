@@ -107,6 +107,10 @@ describe('CFG IR', function() {
             doBA
           #elif c
             doBC
+          #elif a
+            doWTF
+          #else
+            doWTF
           #endif
           doAfterB
         #elif c

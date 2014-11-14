@@ -61,9 +61,9 @@ Parser.prototype.parseConditional = function parseConditional(line) {
   if (match === null)
     return false;
 
-  var cond = this.conds[this.conds.length - 1];
   if (match[1] === 'else') {
-    this.conds[this.conds.length - 1] = !cond;
+    var last = this.condStack[this.condStack.length - 1];
+    this.conds[this.conds.length - 1] = !last;
     return true;
   }
 
