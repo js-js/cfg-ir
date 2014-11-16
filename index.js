@@ -171,6 +171,8 @@ function valueToStr(value) {
     return '$' + value.id;
   else if (value.type === 'stack')
     return '[' + value.id + ']';
+  else if (value.type === 'killer')
+    return '\u2620 ';
   else
     return value.id;
 }
