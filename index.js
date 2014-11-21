@@ -93,7 +93,7 @@ Parser.prototype.parseConditional = function parseConditional(line) {
 
 Parser.prototype.replaceLocal = function replaceLocal(line) {
   var self = this;
-  return line.replace(/\{([^}]*)\}/, function(all, local) {
+  return line.replace(/\{([^}]*)\}/g, function(all, local) {
     return JSON.stringify(self.eval(local));
   });
 };
