@@ -1,6 +1,6 @@
 {
   "name": "cfg-ir",
-  "version": "0.4.6",
+  "version": "0.4.7",
   "description": "CFG IR",
   "main": "index.js",
   "scripts": {
